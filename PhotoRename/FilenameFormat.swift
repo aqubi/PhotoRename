@@ -17,16 +17,17 @@ enum FilenameFormat: String, CaseIterable, Identifiable, Sendable {
   }
 
   var title: String {
-    switch self {
-    case .compact:
-      return "20260715_142356"
+    exampleTitle(for: Date())
+  }
 
-    case .readableDate:
-      return "2026-07-15_142356"
+  func exampleTitle(for date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.timeZone = .current
+    formatter.dateFormat = dateFormat
 
-    case .readableDateAndTime:
-      return "2026-07-15_14-23-56"
-    }
+    return formatter.string(from: date)
   }
 
   nonisolated var dateFormat: String {
@@ -162,7 +163,7 @@ enum ImageFileSelection: String, CaseIterable, Identifiable, Sendable {
     case .photos:
       return String(
         localized: "imageFileSelection.photos",
-        defaultValue: "Photos only"
+        defaultValue: "Photos only (HEIC, HEIF, JPEG)"
       )
 
     case .photosAndCommonImages:

@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var errorDetailsMessage: String?
     @State private var sortOrder = [KeyPathComparator(\RenameItem.originalName)]
     @State private var quickLookPresenter: QuickLookPreviewPresenter?
+    @State private var isFolderDropTargeted = false
 
     var body: some View {
         NavigationStack {
@@ -73,6 +74,15 @@ struct ContentView: View {
                     .keyboardShortcut(",", modifiers: .command)
                     .disabled(viewModel.isLoading || viewModel.isRenaming)
                 }
+            }
+        }
+        .onDrop(of: [.fileURL], isTargeted: $isFolderDropTargeted, perform: handleFolderDrop)
+        .overlay {
+            if isFolderDropTargeted {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.accent, lineWidth: 4)
+                    .padding(8)
+                    .allowsHitTesting(false)
             }
         }
         .fileImporter(isPresented: $isFolderImporterPresented, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
@@ -167,6 +177,58 @@ struct ContentView: View {
             pruneTransientSelection(availableItemIDs: Set(newItemIDs))
         }
 
+    }
+
+    private func handleFolderDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard !viewModel.isLoading,
+            !viewModel.isRenaming,
+            let provider = providers.first(where: {
+                $0.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier)
+            })
+        else {
+            return false
+        }
+
+        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
+            if let error {
+                Task { @MainActor in
+                    viewModel.errorMessage = error.localizedDescription
+                }
+                return
+            }
+
+            guard let folderURL = droppedFileURL(from: item),
+                isDirectory(folderURL)
+            else {
+                return
+            }
+
+            Task { @MainActor in
+                viewModel.selectFolder(folderURL)
+            }
+        }
+
+        return true
+    }
+
+    private nonisolated func droppedFileURL(from item: NSSecureCoding?) -> URL? {
+        if let url = item as? URL {
+            return url
+        }
+
+        if let data = item as? Data {
+            return URL(dataRepresentation: data, relativeTo: nil)
+        }
+
+        if let string = item as? String {
+            return URL(string: string)
+        }
+
+        return nil
+    }
+
+    private nonisolated func isDirectory(_ url: URL) -> Bool {
+        (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
     }
 
     private var header: some View {

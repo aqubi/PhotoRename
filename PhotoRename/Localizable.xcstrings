@@ -919,13 +919,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photos only"
+            "value": "Photos only (HEIC, HEIF, JPEG)"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "写真のみ"
+            "value": "写真のみ（HEIC、HEIF、JPEG）"
           }
         }
       }
