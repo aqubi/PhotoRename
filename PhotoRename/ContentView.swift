@@ -46,7 +46,7 @@ struct ContentView: View {
                     Button {
                         isFolderImporterPresented = true
                     } label: {
-                        Label("Select Folder", systemImage: "folder.badge.plus")
+                        Label("Select Folder", systemImage: "folder")
                     }
                     .keyboardShortcut("o")
 
@@ -173,7 +173,7 @@ struct ContentView: View {
         Button {
             isFolderImporterPresented = true
         } label: {
-            HStack(spacing: 10) {
+            HStack(spacing: 5) {
                 Image(systemName: "folder")
 
                 Text(viewModel.folderName)
@@ -185,8 +185,8 @@ struct ContentView: View {
             }
         }
         .buttonStyle(.plain)
-        .font(.title3)
-        .foregroundStyle(.secondary)
+        .font(viewModel.selectedFolderURL == nil ? .body : .title3)
+        .foregroundStyle(viewModel.selectedFolderURL == nil ? .tertiary : .secondary)
         .help(selectedFolderHelp)
         .padding()
     }
@@ -213,15 +213,37 @@ struct ContentView: View {
 
     private var emptyView: some View {
         ContentUnavailableView {
-            Label("Select a Photo Folder", systemImage: "photo.on.rectangle.angled")
+            Label(emptyViewTitle, systemImage: "photo.on.rectangle.angled")
         } description: {
-            Text("Choose a folder containing supported image files.")
+            Text(emptyViewDescription)
         } actions: {
             Button("Select Folder...") {
                 isFolderImporterPresented = true
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var emptyViewTitle: String {
+        if viewModel.selectedFolderURL == nil {
+            return String(localized: "Select a Photo Folder", defaultValue: "Select a Photo Folder")
+        }
+
+        return String(localized: "emptyFolder.title", defaultValue: "No Image Files Found")
+    }
+
+    private var emptyViewDescription: String {
+        if viewModel.selectedFolderURL == nil {
+            return String(
+                localized: "Choose a folder containing supported image files.",
+                defaultValue: "Choose a folder containing supported image files."
+            )
+        }
+
+        return String(
+            localized: "emptyFolder.description",
+            defaultValue: "This folder does not contain supported image files."
+        )
     }
 
     private var previewTable: some View {
@@ -293,7 +315,7 @@ struct ContentView: View {
                     Button("Mark for Rename") {
                         viewModel.markItemsAsReady(itemIDs)
                     }
-                } else {
+                } else if viewModel.isReadyForRename(itemID: itemID) {
                     Button("Skip Rename") {
                         viewModel.markItemsAsSkipped(itemIDs)
                     }
@@ -317,6 +339,11 @@ struct ContentView: View {
 
     private var footer: some View {
         HStack {
+            if viewModel.isRenaming {
+                ProgressView(value: viewModel.renameProgressFraction ?? 0)
+                    .frame(width: 120)
+            }
+
             Text(summaryText)
                 .foregroundStyle(.secondary)
 
@@ -430,6 +457,14 @@ struct ContentView: View {
 
     private var summaryText: String {
         if viewModel.isRenaming {
+            if let totalRenameFileCount = viewModel.totalRenameFileCount {
+                let format = String(
+                    localized: "summary.renamingProgress.format",
+                    defaultValue: "Renaming files: %lld of %lld"
+                )
+                return String(format: format, viewModel.renamedFileCount, totalRenameFileCount)
+            }
+
             return String(localized: "summary.renaming", defaultValue: "Renaming files...")
         }
 
@@ -438,7 +473,10 @@ struct ContentView: View {
     }
 
     private var renameConfirmationMessage: String {
-        let format = String(localized: "rename.confirmation.message.format", defaultValue: "Rename %lld files.")
+        let format = String(
+            localized: "rename.confirmation.message.format",
+            defaultValue: "Rename %lld files. Review the New Filename column before continuing."
+        )
         return String(format: format, viewModel.readyCount)
     }
 }
@@ -463,11 +501,8 @@ private struct SettingsView: View {
                         )
                     ) {
                         ForEach(FilenameFormat.allCases) { format in
-                            Text(format.exampleFilename(
-                                timeZoneStyle: viewModel.timeZoneStyle,
-                                extensionStyle: viewModel.extensionStyle
-                            ))
-                            .tag(format)
+                            Text(format.title)
+                                .tag(format)
                         }
                     }
 
@@ -549,13 +584,6 @@ private struct SettingsView: View {
             Divider()
 
             HStack {
-                Text(viewModel.filenameFormat.exampleFilename(
-                    timeZoneStyle: viewModel.timeZoneStyle,
-                    extensionStyle: viewModel.extensionStyle
-                ))
-                    .font(.callout.monospaced())
-                    .foregroundStyle(.secondary)
-
                 Spacer()
 
                 Button("Close") {

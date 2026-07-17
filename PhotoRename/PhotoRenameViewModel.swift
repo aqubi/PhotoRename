@@ -19,6 +19,8 @@ final class PhotoRenameViewModel {
   var isRenaming = false
   var scannedFileCount = 0
   var totalScanFileCount: Int?
+  var renamedFileCount = 0
+  var totalRenameFileCount: Int?
 
   private var previewTask: Task<Void, Never>?
   private var duplicateCheckTask: Task<Void, Never>?
@@ -85,6 +87,14 @@ final class PhotoRenameViewModel {
     }
 
     return Double(scannedFileCount) / Double(totalScanFileCount)
+  }
+
+  var renameProgressFraction: Double? {
+    guard let totalRenameFileCount, totalRenameFileCount > 0 else {
+      return nil
+    }
+
+    return Double(renamedFileCount) / Double(totalRenameFileCount)
   }
 
   var scanProgressText: String {
@@ -258,6 +268,14 @@ final class PhotoRenameViewModel {
     }
 
     return reason == manualSkipReason
+  }
+
+  func isReadyForRename(itemID: RenameItem.ID) -> Bool {
+    guard let item = items.first(where: { $0.id == itemID }) else {
+      return false
+    }
+
+    return item.state == .ready
   }
 
   func markItemsAsReady(_ itemIDs: Set<RenameItem.ID>) {
@@ -451,12 +469,18 @@ final class PhotoRenameViewModel {
     previewRequestID = UUID()
 
     let currentItems = items
+    let renameTargetCount = currentItems.filter {
+      $0.state == .ready && $0.destinationURL != nil
+    }.count
 
     isRenaming = true
+    renamedFileCount = 0
+    totalRenameFileCount = renameTargetCount
     errorMessage = nil
     completionMessage = nil
 
     Task {
+      let progressUpdater = RenameProgressUpdater(viewModel: self)
       let accessed =
         folderURL.startAccessingSecurityScopedResource()
 
@@ -469,7 +493,9 @@ final class PhotoRenameViewModel {
       let renamedItems = await Task.detached(
         priority: .userInitiated
       ) {
-        RenameEngine.execute(items: currentItems)
+        RenameEngine.execute(items: currentItems) { progress in
+          progressUpdater.update(progress)
+        }
       }.value
 
       items = renamedItems
@@ -493,6 +519,7 @@ final class PhotoRenameViewModel {
           defaultValue: "Renamed %lld files."
         )
         completionMessage = String(format: format, successCount)
+        resetRenameProgress()
         loadPreview(preservesCompletionMessage: true)
       } else {
         let format = String(
@@ -504,8 +531,14 @@ final class PhotoRenameViewModel {
           successCount,
           failedCount
         )
+        resetRenameProgress()
       }
     }
+  }
+
+  private func resetRenameProgress() {
+    renamedFileCount = 0
+    totalRenameFileCount = nil
   }
 }
 
@@ -612,6 +645,27 @@ private final class ScanProgressUpdater: @unchecked Sendable {
 
       viewModel.scannedFileCount = progress.scannedCount
       viewModel.totalScanFileCount = progress.totalCount
+    }
+  }
+}
+
+private final class RenameProgressUpdater: @unchecked Sendable {
+  nonisolated(unsafe) weak var viewModel: PhotoRenameViewModel?
+
+  init(viewModel: PhotoRenameViewModel) {
+    self.viewModel = viewModel
+  }
+
+  nonisolated func update(_ progress: RenameEngine.ScanProgress) {
+    Task { @MainActor [weak viewModel] in
+      guard let viewModel,
+        viewModel.isRenaming
+      else {
+        return
+      }
+
+      viewModel.renamedFileCount = progress.scannedCount
+      viewModel.totalRenameFileCount = progress.totalCount
     }
   }
 }

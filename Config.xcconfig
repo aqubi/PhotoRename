@@ -1,0 +1,11 @@
+//
+//  Config.xcconfig
+//  PhotoRename
+//
+//  Created by Hideko Ogawa on 2026/07/17.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+BUILD_NUMBER = 1

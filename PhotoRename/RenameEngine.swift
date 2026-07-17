@@ -427,7 +427,8 @@ enum RenameEngine {
   }
 
   nonisolated static func execute(
-    items: [RenameItem]
+    items: [RenameItem],
+    progressHandler: (@Sendable (ScanProgress) -> Void)? = nil
   ) -> [RenameItem] {
     let fileManager = FileManager.default
     var results = items
@@ -436,6 +437,9 @@ enum RenameEngine {
       results[$0].state == .ready
         && results[$0].destinationURL != nil
     }
+
+    var processedCount = 0
+    progressHandler?(ScanProgress(scannedCount: processedCount, totalCount: readyIndices.count))
 
     let sourceFileIdentifiers = Set(
       readyIndices.compactMap {
@@ -462,6 +466,8 @@ enum RenameEngine {
           defaultValue: "A file with the same name already exists"
         )
       )
+      processedCount += 1
+      progressHandler?(ScanProgress(scannedCount: processedCount, totalCount: readyIndices.count))
     }
 
     let executableIndices = readyIndices.filter {
@@ -501,6 +507,8 @@ enum RenameEngine {
             error: error
           )
         )
+        processedCount += 1
+        progressHandler?(ScanProgress(scannedCount: processedCount, totalCount: readyIndices.count))
       }
     }
 
@@ -524,6 +532,8 @@ enum RenameEngine {
         )
 
         results[index].state = .completed
+        processedCount += 1
+        progressHandler?(ScanProgress(scannedCount: processedCount, totalCount: readyIndices.count))
       } catch {
         /*
          最終名への変更に失敗したら、可能な限り
@@ -543,6 +553,8 @@ enum RenameEngine {
             error: error
           )
         )
+        processedCount += 1
+        progressHandler?(ScanProgress(scannedCount: processedCount, totalCount: readyIndices.count))
       }
     }
 

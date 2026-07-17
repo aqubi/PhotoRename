@@ -333,7 +333,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "変更後"
+            "value": "新しいファイル名"
           }
         }
       }
@@ -514,6 +514,38 @@
         }
       }
     },
+    "emptyFolder.description": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This folder does not contain supported image files."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このフォルダには対応している画像ファイルがありません。"
+          }
+        }
+      }
+    },
+    "emptyFolder.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Image Files Found"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像ファイルがありません"
+          }
+        }
+      }
+    },
     "Select a folder": {
       "localizations": {
         "en": {
@@ -647,13 +679,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This moves the selected file to the Trash."
+            "value": "You can restore it from the Trash in Finder if needed."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "選択したファイルをゴミ箱に移動します。"
+            "value": "必要に応じてFinderのゴミ箱から戻せます。"
           }
         }
       }
@@ -855,13 +887,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No folder selected"
+            "value": "Select a folder"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "フォルダが選択されていません"
+            "value": "フォルダを選択"
           }
         }
       }
@@ -919,13 +951,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rename %lld files."
+            "value": "Rename %lld files. Review the New Filename column before continuing."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld件のファイル名を変更します。"
+            "value": "%lld件のファイル名を変更します。続ける前に「新しいファイル名」列を確認してください。"
           }
         }
       }
@@ -1294,6 +1326,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld件中、%lld件を変更予定"
+          }
+        }
+      }
+    },
+    "summary.renamingProgress.format": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renaming files: %lld of %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ファイル名を変更しています: %lld / %lld"
           }
         }
       }

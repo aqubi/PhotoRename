@@ -41,13 +41,6 @@ enum FilenameFormat: String, CaseIterable, Identifiable, Sendable {
       return "yyyy-MM-dd_HH-mm-ss"
     }
   }
-
-  func exampleFilename(
-    timeZoneStyle: FilenameTimeZoneStyle,
-    extensionStyle: FilenameExtensionStyle = .keepOriginal
-  ) -> String {
-    "\(timeZoneStyle.exampleDatePart(for: self)).\(extensionStyle.exampleExtension)"
-  }
 }
 
 enum FilenameExtensionStyle: String, CaseIterable, Identifiable, Sendable {

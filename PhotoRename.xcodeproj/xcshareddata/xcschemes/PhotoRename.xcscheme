@@ -6,6 +6,24 @@
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
       buildArchitectures = "Automatic">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;&#10;if [ ${CONFIGURATION} == &quot;Release&quot; ]; then&#10;&#10;echo &quot;SRCROOT is $SRCROOT&quot;&#10;&#10;cd &quot;$SRCROOT&quot;&#10;&#10;BUILD_NUMBER=$(git rev-list HEAD | wc -l | tr -d &apos; &apos;)&#10;CONFIG_FILE=&quot;./Config.xcconfig&quot;&#10;&#10;echo &quot;BUILD_NUMBER is $BUILD_NUMBER&quot;&#10;echo $CONFIG_FILE&#10;&#10;sed -i &quot;&quot; &quot;s/BUILD_NUMBER = .*/BUILD_NUMBER = $BUILD_NUMBER/g&quot; &quot;$CONFIG_FILE&quot;&#10;&#10;fi&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "C5BABB9A30073B9B0052A74A"
+                     BuildableName = "PhotoRename.app"
+                     BlueprintName = "PhotoRename"
+                     ReferencedContainer = "container:PhotoRename.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
